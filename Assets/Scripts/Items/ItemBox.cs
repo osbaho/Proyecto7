@@ -12,6 +12,14 @@ namespace Items
         [SerializeField] private Collider boxCollider;
 
         private NetworkVariable<bool> _isActive = new NetworkVariable<bool>(true);
+        private static readonly System.Array _itemTypes = System.Enum.GetValues(typeof(ItemType));
+        private WaitForSeconds _cachedWait;
+
+        private void Awake()
+        {
+            _cachedWait = new WaitForSeconds(respawnTime);
+        }
+
 
         public override void OnNetworkSpawn()
         {
@@ -43,8 +51,8 @@ namespace Items
             {
                 if (itemSystem.CanPickupItem())
                 {
-                    // Pick random item (excluding None)
-                    ItemType randomItem = (ItemType)Random.Range(1, System.Enum.GetValues(typeof(ItemType)).Length);
+                    // Pick random item (excluding None at index 0)
+                    ItemType randomItem = (ItemType)_itemTypes.GetValue(Random.Range(1, _itemTypes.Length));
 
                     itemSystem.EquipItemServerRpc(randomItem);
 
@@ -57,7 +65,7 @@ namespace Items
 
         private IEnumerator RespawnRoutine()
         {
-            yield return new WaitForSeconds(respawnTime);
+            yield return _cachedWait;
             _isActive.Value = true;
         }
     }

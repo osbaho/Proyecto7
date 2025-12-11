@@ -9,7 +9,7 @@ namespace Combat
         [SerializeField] private float lifeTime = 5f;
         [SerializeField] private int damage = 1;
 
-        private void Start()
+        public override void OnNetworkSpawn()
         {
             if (IsServer)
             {
@@ -19,10 +19,9 @@ namespace Combat
 
         private void Update()
         {
-            if (IsServer)
-            {
-                transform.Translate(Vector3.forward * speed * Time.deltaTime);
-            }
+            if (!IsServer) return;
+
+            transform.Translate(Vector3.forward * (speed * Time.deltaTime));
         }
 
         private void OnTriggerEnter(Collider other)
@@ -32,15 +31,15 @@ namespace Combat
             // Prevent hitting the owner if possible (needs owner setup on spawn)
             // For simple prototype, just check tag or component
 
-            if (other.TryGetComponent<HealthSystem>(out var health))
+            if (other.TryGetComponent<Interfaces.IDamageable>(out var damageable))
             {
-                // Don't damage self if we are the owner (needs owner check logic passed to projectile)
-                // For now, let's assume projectile is spawned slightly ahead so it doesn't hit self immediately,
-                // or we assign an "OwnerID" to projectile.
+                // Simple friendly fire check based on OwnerClientId if available on both
+                // Validating owner requires IDamageable to expose it or casting to NetworkBehaviour
 
-                if (health.OwnerClientId != OwnerClientId)
+                // For now, let's assume we implement OwnerId on IDamageable or check simple equality
+                if (damageable.OwnerClientId != OwnerClientId)
                 {
-                    health.TakeDamageServerRpc(damage);
+                    damageable.TakeDamage(damage);
                     Destroy(gameObject);
                 }
             }
