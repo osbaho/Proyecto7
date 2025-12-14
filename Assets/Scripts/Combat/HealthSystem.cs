@@ -1,13 +1,15 @@
+using Interfaces;
+using Managers;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Combat
 {
-    public class HealthSystem : NetworkBehaviour
+    public class HealthSystem : NetworkBehaviour, IDamageable
     {
         [SerializeField] private int maxLives = 3;
 
-        public NetworkVariable<int> CurrentLives = new NetworkVariable<int>();
+        public NetworkVariable<int> CurrentLives = new();
 
         public event System.Action<int> OnLivesChangedLocal;
 
@@ -16,10 +18,12 @@ namespace Combat
             if (IsServer)
             {
                 CurrentLives.Value = maxLives;
+                if (GameManager.Instance != null) GameManager.Instance.RegisterPlayer(OwnerClientId);
             }
 
             CurrentLives.OnValueChanged += OnLivesChanged;
-            // Initial update for local player
+
+            // Initial update for local player event
             if (IsOwner) OnLivesChangedLocal?.Invoke(CurrentLives.Value);
         }
 
@@ -40,10 +44,9 @@ namespace Combat
             if (newValue <= 0)
             {
                 Debug.Log($"Player {OwnerClientId} Eliminated!");
-                // Handle elimination (disable controls, show game over, etc.)
                 if (IsServer)
                 {
-                    // Optional: Despawn or Respawn logic
+                    if (GameManager.Instance != null) GameManager.Instance.OnPlayerEliminated(OwnerClientId);
                 }
             }
         }
@@ -55,6 +58,18 @@ namespace Combat
             {
                 CurrentLives.Value -= damage;
             }
+        }
+
+        // IDamageable implementation
+        public void TakeDamage(int amount)
+        {
+            TakeDamageServerRpc(amount);
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        public void AddLivesServerRpc(int amount)
+        {
+            CurrentLives.Value += amount;
         }
     }
 }
