@@ -1396,7 +1396,7 @@ GameObject:
   - component: {fileID: 734156359}
   - component: {fileID: 734156361}
   m_Layer: 0
-  m_Name: ' GameManager'
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1459,6 +1459,7 @@ MonoBehaviour:
     m_InternalValue: 0
   WinnerId:
     m_InternalValue: 18446744073709551615
+  playerPrefab: {fileID: 5632083933978976490, guid: 29f0263ba8e23d84e9ea16163f70d33c, type: 3}
 --- !u!1 &956300140
 GameObject:
   m_ObjectHideFlags: 0

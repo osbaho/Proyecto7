@@ -26,9 +26,10 @@ namespace Player
 
             // Retry for a few seconds if not found immediately (e.g. scene loading)
             float timeout = 5f;
+            var wait = new WaitForSeconds(0.5f);
             while (cam == null && timeout > 0)
             {
-                yield return new WaitForSeconds(0.5f);
+                yield return wait;
                 timeout -= 0.5f;
                 cam = FindFirstObjectByType<CinemachineCamera>();
             }
@@ -38,7 +39,7 @@ namespace Player
                 Debug.Log($"[ClientCameraHandler] Assigning camera to {name}");
                 cam.Follow = transform;
                 cam.LookAt = transform;
-                
+
                 // Ensure Rotation Control is set to Hard Lock To Target if not already
                 // Or inform user if they forgot (we already did in walkthrough)
             }

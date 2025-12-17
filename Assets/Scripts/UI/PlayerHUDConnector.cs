@@ -20,11 +20,12 @@ namespace GameUI
         private System.Collections.IEnumerator WaitForHUD()
         {
             var hud = FindFirstObjectByType<BattleHUD>();
-            
+
             float timeout = 5f;
+            var wait = new WaitForSeconds(0.5f);
             while (hud == null && timeout > 0)
             {
-                yield return new WaitForSeconds(0.5f);
+                yield return wait;
                 timeout -= 0.5f;
                 hud = FindFirstObjectByType<BattleHUD>();
             }
@@ -35,7 +36,9 @@ namespace GameUI
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.LogWarning("BattleHUD not found in scene after waiting!");
+#endif
             }
         }
     }

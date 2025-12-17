@@ -14,6 +14,8 @@ namespace Managers
         public NetworkVariable<bool> IsGameOver = new NetworkVariable<bool>(false);
         public NetworkVariable<ulong> WinnerId = new NetworkVariable<ulong>(ulong.MaxValue);
 
+        [SerializeField] private NetworkObject playerPrefab;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -29,6 +31,13 @@ namespace Managers
             if (IsServer)
             {
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+                NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+
+                // Spawn for clients already connected (scene transition)
+                foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+                {
+                    SpawnPlayerForClient(clientId);
+                }
             }
         }
 
@@ -37,7 +46,13 @@ namespace Managers
             if (IsServer)
             {
                 NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             }
+        }
+
+        private void OnClientConnected(ulong clientId)
+        {
+            SpawnPlayerForClient(clientId);
         }
 
         private void OnClientDisconnect(ulong clientId)
@@ -48,6 +63,18 @@ namespace Managers
             }
         }
 
+        private void SpawnPlayerForClient(ulong clientId)
+        {
+            if (playerPrefab == null)
+            {
+                Debug.LogError("Player Prefab not assigned in GameManager!");
+                return;
+            }
+
+            var playerInstance = Instantiate(playerPrefab);
+            playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
+        }
+
         public void RegisterPlayer(ulong clientId)
         {
             if (!IsServer) return;
@@ -55,7 +82,9 @@ namespace Managers
             if (!_activePlayers.Contains(clientId))
             {
                 _activePlayers.Add(clientId);
+#if UNITY_EDITOR
                 Debug.Log($"Player {clientId} registered. Total: {_activePlayers.Count}");
+#endif
             }
         }
 
@@ -66,7 +95,9 @@ namespace Managers
             if (_activePlayers.Contains(clientId))
             {
                 _activePlayers.Remove(clientId);
+#if UNITY_EDITOR
                 Debug.Log($"Player {clientId} eliminated. Remaining: {_activePlayers.Count}");
+#endif
 
                 CheckWinCondition();
             }
@@ -80,12 +111,16 @@ namespace Managers
                 if (_activePlayers.Count == 1)
                 {
                     WinnerId.Value = _activePlayers[0];
+#if UNITY_EDITOR
                     Debug.Log($"Winner is Player {WinnerId.Value}!");
+#endif
                 }
                 else
                 {
                     // Draw or empty
+#if UNITY_EDITOR
                     Debug.Log("Game Over! Draw/Empty");
+#endif
                 }
             }
         }
