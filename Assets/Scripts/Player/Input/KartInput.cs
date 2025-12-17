@@ -6,23 +6,21 @@ namespace Assets.Scripts.Player.Input
 {
     public class KartInput : NetworkBehaviour
     {
-        [Header("Input Actions")]
-        [Tooltip("Assign 'Player/Move' action here")]
-        [SerializeField] private InputActionReference moveAction;
-
-        [Tooltip("Assign 'Player/Attack' or 'Player/Jump' (Space) action here")]
-        [SerializeField] private InputActionReference fireAction;
+        private InputSystem_Actions _actions;
 
         public Vector2 MoveInput { get; private set; }
         public bool IsFiring { get; private set; }
 
+        private void Awake()
+        {
+            _actions = new InputSystem_Actions();
+        }
+
         public override void OnNetworkSpawn()
         {
-            // Ensure inputs are enabled for the owner
             if (IsOwner)
             {
-                if (moveAction != null) moveAction.action.Enable();
-                if (fireAction != null) fireAction.action.Enable();
+                _actions.Player.Enable();
             }
         }
 
@@ -30,24 +28,21 @@ namespace Assets.Scripts.Player.Input
         {
             if (IsOwner)
             {
-                if (moveAction != null) moveAction.action.Disable();
-                if (fireAction != null) fireAction.action.Disable();
+                _actions.Player.Disable();
             }
+        }
+
+        private void OnDestroy()
+        {
+            _actions?.Dispose();
         }
 
         private void Update()
         {
             if (!IsOwner) return;
 
-            if (moveAction != null)
-            {
-                MoveInput = moveAction.action.ReadValue<Vector2>();
-            }
-
-            if (fireAction != null)
-            {
-                IsFiring = fireAction.action.WasPressedThisFrame();
-            }
+            MoveInput = _actions.Player.Move.ReadValue<Vector2>();
+            IsFiring = _actions.Player.Attack.WasPressedThisFrame();
         }
     }
 }

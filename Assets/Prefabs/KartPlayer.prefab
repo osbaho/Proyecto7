@@ -406,8 +406,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.Input.KartInput
   ShowTopMostFoldoutHeaderGroup: 1
-  moveAction: {fileID: 0}
-  fireAction: {fileID: 0}
 --- !u!114 &1414791453778768739
 MonoBehaviour:
   m_ObjectHideFlags: 0
