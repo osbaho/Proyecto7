@@ -1,9 +1,9 @@
-using Interfaces;
-using Managers;
+using Assets.Scripts.Interfaces;
+using Assets.Scripts.Managers;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Combat
+namespace Assets.Scripts.Combat
 {
     public class HealthSystem : NetworkBehaviour, IDamageable
     {
@@ -18,7 +18,8 @@ namespace Combat
             if (IsServer)
             {
                 CurrentLives.Value = maxLives;
-                if (GameManager.Instance != null) GameManager.Instance.RegisterPlayer(OwnerClientId);
+                // Decoupled registration
+                Assets.Scripts.Events.PlayerEvents.InvokePlayerJoined(OwnerClientId);
             }
 
             CurrentLives.OnValueChanged += OnLivesChanged;
@@ -46,7 +47,8 @@ namespace Combat
                 Debug.Log($"Player {OwnerClientId} Eliminated!");
                 if (IsServer)
                 {
-                    if (GameManager.Instance != null) GameManager.Instance.OnPlayerEliminated(OwnerClientId);
+                    // Decoupled elimination
+                    Assets.Scripts.Events.PlayerEvents.InvokePlayerEliminated(OwnerClientId);
                 }
             }
         }

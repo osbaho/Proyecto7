@@ -1,11 +1,11 @@
-using Combat;
-using Items;
+using Assets.Scripts.Combat;
+using Assets.Scripts.Items;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace GameUI
+namespace Assets.Scripts.UI
 {
     public class BattleHUD : MonoBehaviour
     {

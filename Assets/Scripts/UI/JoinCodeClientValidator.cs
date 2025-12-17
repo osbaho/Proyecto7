@@ -1,8 +1,8 @@
-using Managers;
+using Assets.Scripts.Managers;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace UI
+namespace Assets.Scripts.UI
 {
     /// <summary>
     /// Validates the join code after client connects to a lobby

@@ -2,7 +2,7 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Player
+namespace Assets.Scripts.Player
 {
     /// <summary>
     /// Handles finding the local scene camera and assigning it to follow this player.

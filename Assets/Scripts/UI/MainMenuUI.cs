@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace UI
+namespace Assets.Scripts.UI
 {
     public class MainMenuUI : MonoBehaviour
     {
@@ -80,7 +80,7 @@ namespace UI
                 return;
             }
 
-            if (!Managers.JoinCodeValidator.IsValidFormat(joinCodeInputField.text))
+            if (!Assets.Scripts.Managers.JoinCodeValidator.IsValidFormat(joinCodeInputField.text))
             {
 #if UNITY_EDITOR
                 Debug.LogError($"Invalid join code format! Code must be 6 alphanumeric characters.");

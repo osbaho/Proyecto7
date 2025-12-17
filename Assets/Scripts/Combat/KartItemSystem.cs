@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using Assets.Scripts.Items;
+using Assets.Scripts.Items.Strategies;
+using Assets.Scripts.Player.Input;
 using DG.Tweening; // Required for Extension Methods like .SetEase
-using Items;
-using Items.Strategies;
-using Player.Input;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Combat
+namespace Assets.Scripts.Combat
 {
     [RequireComponent(typeof(Player.KartController), typeof(Player.Input.KartInput), typeof(HealthSystem))]
     public class KartItemSystem : NetworkBehaviour

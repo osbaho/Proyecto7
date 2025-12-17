@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Combat;
+using Assets.Scripts.Combat;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Player
+namespace Assets.Scripts.Player
 {
     public class PlayerVisuals : NetworkBehaviour
     {

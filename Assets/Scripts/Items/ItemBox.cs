@@ -1,9 +1,8 @@
-using System.Collections;
-using Combat;
+using Assets.Scripts.Combat;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Items
+namespace Assets.Scripts.Items
 {
     public class ItemBox : NetworkBehaviour
     {
@@ -11,14 +10,16 @@ namespace Items
         [SerializeField] private GameObject visualModel;
         [SerializeField] private Collider boxCollider;
 
-        private NetworkVariable<bool> _isActive = new NetworkVariable<bool>(true);
-        private static readonly System.Array _itemTypes = System.Enum.GetValues(typeof(ItemType));
-        private WaitForSeconds _cachedWait;
-
-        private void Awake()
+        [Header("Item Drops")]
+        [SerializeField]
+        private ItemDrop[] itemDrops = new ItemDrop[]
         {
-            _cachedWait = new WaitForSeconds(respawnTime);
-        }
+            new() { itemType = ItemType.Mushroom, weight = 50f },
+            new() { itemType = ItemType.GreenShell, weight = 50f }
+        };
+
+        private readonly NetworkVariable<bool> _isActive = new(true);
+        private float _respawnTimer;
 
 
         public override void OnNetworkSpawn()
@@ -51,22 +52,75 @@ namespace Items
             {
                 if (itemSystem.CanPickupItem())
                 {
-                    // Pick random item (excluding None at index 0)
-                    ItemType randomItem = (ItemType)_itemTypes.GetValue(Random.Range(1, _itemTypes.Length));
+                    // Select weighted random item
+                    ItemType randomItem = SelectWeightedItem();
 
-                    itemSystem.EquipItemServerRpc(randomItem);
+                    if (randomItem != ItemType.None)
+                    {
+                        itemSystem.EquipItemServerRpc(randomItem);
 
-                    // Disable box and start respawn timer
-                    _isActive.Value = false;
-                    StartCoroutine(RespawnRoutine());
+                        // Disable box and start respawn timer
+                        _isActive.Value = false;
+                        _respawnTimer = 0f;
+                    }
                 }
             }
         }
 
-        private IEnumerator RespawnRoutine()
+        private ItemType SelectWeightedItem()
         {
-            yield return _cachedWait;
-            _isActive.Value = true;
+            if (itemDrops == null || itemDrops.Length == 0)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("[ItemBox] No item drops configured!");
+#endif
+                return ItemType.None;
+            }
+
+            // Calculate total weight
+            float totalWeight = 0f;
+            foreach (var drop in itemDrops)
+            {
+                if (drop.weight > 0f)
+                    totalWeight += drop.weight;
+            }
+
+            if (totalWeight <= 0f)
+                return ItemType.None;
+
+            // Select random value in range [0, totalWeight)
+            float randomValue = Random.Range(0f, totalWeight);
+            float cumulative = 0f;
+
+            // Find which item the random value falls into
+            foreach (var drop in itemDrops)
+            {
+                if (drop.weight <= 0f) continue;
+
+                cumulative += drop.weight;
+                if (randomValue < cumulative)
+                {
+#if UNITY_EDITOR
+                    Debug.Log($"[ItemBox] Selected {drop.itemType} (weight: {drop.weight}/{totalWeight})");
+#endif
+                    return drop.itemType;
+                }
+            }
+
+            // Fallback (shouldn't reach here)
+            return itemDrops[0].itemType;
+        }
+
+        private void Update()
+        {
+            if (!IsServer || _isActive.Value) return;
+
+            _respawnTimer += Time.deltaTime;
+            if (_respawnTimer >= respawnTime)
+            {
+                _isActive.Value = true;
+                _respawnTimer = 0f;
+            }
         }
     }
 }

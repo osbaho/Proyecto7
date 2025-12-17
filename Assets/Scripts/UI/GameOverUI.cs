@@ -1,10 +1,10 @@
-using Managers;
+using Assets.Scripts.Managers;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace GameUI
+namespace Assets.Scripts.UI
 {
     public class GameOverUI : MonoBehaviour
     {

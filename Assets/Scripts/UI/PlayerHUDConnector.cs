@@ -1,8 +1,8 @@
-using Combat;
+using Assets.Scripts.Combat;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace GameUI
+namespace Assets.Scripts.UI
 {
     public class PlayerHUDConnector : NetworkBehaviour
     {

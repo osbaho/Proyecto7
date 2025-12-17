@@ -1,8 +1,8 @@
-using Player.Input;
+using Assets.Scripts.Player.Input;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Player
+namespace Assets.Scripts.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     public class KartController : NetworkBehaviour

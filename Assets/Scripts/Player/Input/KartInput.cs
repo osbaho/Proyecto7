@@ -2,14 +2,14 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Player.Input
+namespace Assets.Scripts.Player.Input
 {
     public class KartInput : NetworkBehaviour
     {
         [Header("Input Actions")]
         [Tooltip("Assign 'Player/Move' action here")]
         [SerializeField] private InputActionReference moveAction;
-        
+
         [Tooltip("Assign 'Player/Attack' or 'Player/Jump' (Space) action here")]
         [SerializeField] private InputActionReference fireAction;
 
@@ -25,14 +25,14 @@ namespace Player.Input
                 if (fireAction != null) fireAction.action.Enable();
             }
         }
-        
-        public override void OnNetworkDespawn() 
+
+        public override void OnNetworkDespawn()
         {
-             if (IsOwner)
-             {
-                 if (moveAction != null) moveAction.action.Disable();
-                 if (fireAction != null) fireAction.action.Disable();
-             }
+            if (IsOwner)
+            {
+                if (moveAction != null) moveAction.action.Disable();
+                if (fireAction != null) fireAction.action.Disable();
+            }
         }
 
         private void Update()

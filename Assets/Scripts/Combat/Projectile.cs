@@ -1,7 +1,8 @@
+using Assets.Scripts.Managers;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Combat
+namespace Assets.Scripts.Combat
 {
     public class Projectile : NetworkBehaviour
     {
@@ -13,7 +14,22 @@ namespace Combat
         {
             if (IsServer)
             {
-                Destroy(gameObject, lifeTime);
+                // Reset timer when reused
+                CancelInvoke(nameof(Despawn));
+                Invoke(nameof(Despawn), lifeTime);
+            }
+        }
+
+        private void Despawn()
+        {
+            if (NetworkObjectPool.Singleton != null)
+            {
+                NetworkObjectPool.Singleton.ReturnNetworkObject(NetworkObject);
+            }
+            else
+            {
+                // Fallback if pool missing
+                Destroy(gameObject);
             }
         }
 
@@ -28,25 +44,17 @@ namespace Combat
         {
             if (!IsServer) return;
 
-            // Prevent hitting the owner if possible (needs owner setup on spawn)
-            // For simple prototype, just check tag or component
-
-            if (other.TryGetComponent<Interfaces.IDamageable>(out var damageable))
+            if (other.TryGetComponent<Assets.Scripts.Interfaces.IDamageable>(out var damageable))
             {
-                // Simple friendly fire check based on OwnerClientId if available on both
-                // Validating owner requires IDamageable to expose it or casting to NetworkBehaviour
-
-                // For now, let's assume we implement OwnerId on IDamageable or check simple equality
                 if (damageable.OwnerClientId != OwnerClientId)
                 {
                     damageable.TakeDamage(damage);
-                    Destroy(gameObject);
+                    Despawn();
                 }
             }
             else
             {
-                // Destroy on hitting walls etc.
-                Destroy(gameObject);
+                Despawn();
             }
         }
     }

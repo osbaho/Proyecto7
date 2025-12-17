@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace Managers
+namespace Assets.Scripts.Managers
 {
     /// <summary>
     /// Helper class for join code generation and validation

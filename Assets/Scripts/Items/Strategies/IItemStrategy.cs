@@ -1,6 +1,6 @@
-using Combat;
+using Assets.Scripts.Combat;
 
-namespace Items.Strategies
+namespace Assets.Scripts.Items.Strategies
 {
     public interface IItemStrategy
     {

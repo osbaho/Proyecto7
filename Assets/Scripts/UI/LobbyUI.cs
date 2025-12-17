@@ -1,10 +1,12 @@
-using Managers;
+using System.Collections.Generic;
+using Assets.Scripts.Managers;
+using Assets.Scripts.Models;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI
+namespace Assets.Scripts.UI
 {
     public class LobbyUI : NetworkBehaviour
     {
@@ -117,22 +119,39 @@ namespace UI
             }
         }
 
+        private List<GameObject> _playerListPool = new();
+
         private void UpdatePlayerList()
         {
-            // Clear existing
-            foreach (Transform child in playerListContainer)
-            {
-                Destroy(child.gameObject);
-            }
+            var players = LobbyManager.Instance.LobbyPlayers;
 
-            foreach (var player in LobbyManager.Instance.LobbyPlayers)
+            // Ensure pool is large enough
+            while (_playerListPool.Count < players.Count)
             {
                 GameObject entry = Instantiate(playerListEntryPrefab, playerListContainer);
-                TextMeshProUGUI text = entry.GetComponentInChildren<TextMeshProUGUI>();
-                if (text != null)
+                _playerListPool.Add(entry);
+            }
+
+            // Update active entries
+            for (int i = 0; i < _playerListPool.Count; i++)
+            {
+                if (i < players.Count)
                 {
-                    string status = player.IsReady ? "<color=green>READY</color>" : "<color=red>NOT READY</color>";
-                    text.text = $"{player.PlayerName} - {status}";
+                    var entry = _playerListPool[i];
+                    entry.SetActive(true);
+
+                    var player = players[i];
+                    TextMeshProUGUI text = entry.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text != null)
+                    {
+                        string status = player.IsReady ? "<color=green>READY</color>" : "<color=red>NOT READY</color>";
+                        text.text = $"{player.PlayerName} - {status}";
+                    }
+                }
+                else
+                {
+                    // Disable unused
+                    _playerListPool[i].SetActive(false);
                 }
             }
         }

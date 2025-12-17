@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Assets.Scripts.Models;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Managers
+namespace Assets.Scripts.Managers
 {
     public class LobbyManager : NetworkBehaviour
     {

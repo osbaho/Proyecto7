@@ -2,7 +2,7 @@ using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Managers
+namespace Assets.Scripts.Managers
 {
     /// <summary>
     /// Manages the join code for the multiplayer session
