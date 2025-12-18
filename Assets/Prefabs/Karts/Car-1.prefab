@@ -735,7 +735,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 64
   m_CollisionDetection: 0
 --- !u!65 &6967995302716626458
 BoxCollider:
@@ -822,8 +822,8 @@ MonoBehaviour:
   PositionThreshold: 0.001
   RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
+  UseQuaternionSynchronization: 1
+  UseQuaternionCompression: 1
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
   SwitchTransformSpaceWhenParented: 0
@@ -860,7 +860,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player.KartController
   ShowTopMostFoldoutHeaderGroup: 1
   speed: 20
-  turnSpeed: 100
+  turnSpeed: 10
 --- !u!114 &6616279672748550639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -890,8 +890,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.Input.KartInput
   ShowTopMostFoldoutHeaderGroup: 1
-  moveAction: {fileID: 0}
-  fireAction: {fileID: 0}
 --- !u!114 &2461047761709117340
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -32,9 +32,10 @@ namespace Assets.Scripts.Player.Input
             }
         }
 
-        private void OnDestroy()
+        public override void OnDestroy()
         {
             _actions?.Dispose();
+            base.OnDestroy();
         }
 
         private void Update()
