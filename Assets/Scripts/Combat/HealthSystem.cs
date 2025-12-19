@@ -33,6 +33,8 @@ namespace Assets.Scripts.Combat
             CurrentLives.OnValueChanged -= OnLivesChanged;
         }
 
+        private bool _hasBeenEliminated = false; // Guard against duplicate elimination events
+
         private void OnLivesChanged(int previousValue, int newValue)
         {
             Debug.Log($"Player {OwnerClientId} lives changed: {previousValue} -> {newValue}");
@@ -42,23 +44,45 @@ namespace Assets.Scripts.Combat
                 OnLivesChangedLocal?.Invoke(newValue);
             }
 
-            if (newValue <= 0)
+            // Only trigger elimination event once per player
+            if (newValue <= 0 && !_hasBeenEliminated)
             {
+                _hasBeenEliminated = true;
                 Debug.Log($"Player {OwnerClientId} Eliminated!");
                 if (IsServer)
                 {
-                    // Decoupled elimination
+                    // Decoupled elimination (will only fire once due to guard above)
                     Assets.Scripts.Events.PlayerEvents.InvokePlayerEliminated(OwnerClientId);
                 }
             }
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        public void TakeDamageServerRpc(int damage = 1)
+            public void TakeDamageServerRpc(int damage = 1)
         {
+            // Guard against already eliminated player taking more damage
+            if (_hasBeenEliminated)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[HealthSystem] Player {OwnerClientId} already eliminated, ignoring damage");
+#endif
+                return;
+            }
+
+            // Server-side validation: sanity check damage value
+            if (damage < 0 || damage > 100)
+            {
+                Debug.LogWarning($"[HealthSystem] Invalid damage {damage} to Player {OwnerClientId}");
+                return;
+            }
+
             if (CurrentLives.Value > 0)
             {
-                CurrentLives.Value -= damage;
+                int newLives = Mathf.Max(0, CurrentLives.Value - damage); // Prevent negative
+                CurrentLives.Value = newLives;
+#if UNITY_EDITOR
+                Debug.Log($"[HealthSystem] Player {OwnerClientId} took {damage} damage. Lives: {newLives}");
+#endif
             }
         }
 

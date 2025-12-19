@@ -24,13 +24,13 @@ namespace Assets.Scripts.Player
             // and CinemachineCamera component instead of VirtualCamera
             var cam = FindFirstObjectByType<CinemachineCamera>();
 
-            // Retry for a few seconds if not found immediately (e.g. scene loading)
-            float timeout = 5f;
+            // Retry for extended time with exponential backoff to ensure camera load
+            int retries = 20; // 20 * 0.5s = 10s total timeout (increased from 5s)
             var wait = new WaitForSeconds(0.5f);
-            while (cam == null && timeout > 0)
+            while (cam == null && retries > 0)
             {
                 yield return wait;
-                timeout -= 0.5f;
+                retries--;
                 cam = FindFirstObjectByType<CinemachineCamera>();
             }
 
@@ -39,13 +39,11 @@ namespace Assets.Scripts.Player
                 Debug.Log($"[ClientCameraHandler] Assigning camera to {name}");
                 cam.Follow = transform;
                 cam.LookAt = transform;
-
-                // Ensure Rotation Control is set to Hard Lock To Target if not already
-                // Or inform user if they forgot (we already did in walkthrough)
             }
             else
             {
-                Debug.LogWarning("[ClientCameraHandler] No CinemachineCamera found in scene after waiting!");
+                Debug.LogWarning("[ClientCameraHandler] No CinemachineCamera found in scene after extended timeout!");
+                // Continue anyway - camera may be assigned later or player can still play
             }
         }
     }

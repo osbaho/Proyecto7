@@ -11,6 +11,9 @@ namespace Assets.Scripts.Managers
     {
         public static JoinCodeManager Instance { get; private set; }
 
+        // Allows setting the join code before the manager spawns (e.g., Relay-generated).
+        public static string PreGeneratedJoinCode { get; set; }
+
         public NetworkVariable<FixedString32Bytes> JoinCode = new NetworkVariable<FixedString32Bytes>(
             default,
             NetworkVariableReadPermission.Everyone,
@@ -30,7 +33,18 @@ namespace Assets.Scripts.Managers
         {
             if (IsServer)
             {
-                GenerateJoinCode();
+                if (!string.IsNullOrWhiteSpace(PreGeneratedJoinCode))
+                {
+                    JoinCode.Value = PreGeneratedJoinCode;
+#if UNITY_EDITOR
+                    Debug.Log($"[JoinCodeManager] Using pre-generated join code: {PreGeneratedJoinCode}");
+#endif
+                    PreGeneratedJoinCode = null;
+                }
+                else
+                {
+                    GenerateJoinCode();
+                }
             }
         }
 

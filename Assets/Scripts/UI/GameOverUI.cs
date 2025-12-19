@@ -47,6 +47,9 @@ namespace Assets.Scripts.UI
             {
                 GameManager.Instance.IsGameOver.OnValueChanged -= OnGameOverChanged;
             }
+#if UNITY_EDITOR
+            Debug.Log("[GameOverUI] Unsubscribed from IsGameOver changes");
+#endif
         }
 
         private void OnGameOverChanged(bool previous, bool current)

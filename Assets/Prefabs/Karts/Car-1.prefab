@@ -402,7 +402,7 @@ GameObject:
   - component: {fileID: 2794822702039927943}
   m_Layer: 0
   m_Name: BaloonContainer
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -625,6 +625,7 @@ GameObject:
   - component: {fileID: 8680052950203165606}
   - component: {fileID: 4711254611603683172}
   - component: {fileID: 7307231361352990251}
+  - component: {fileID: 2585373473200040852}
   m_Layer: 0
   m_Name: Car-1
   m_TagString: Untagged
@@ -735,7 +736,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 64
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &6967995302716626458
 BoxCollider:
@@ -859,8 +860,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.KartController
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 20
-  turnSpeed: 10
+  speed: 2
+  turnSpeed: 3
 --- !u!114 &6616279672748550639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -963,6 +964,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.ClientCameraHandler
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &2585373473200040852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5179304126903695217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce00f22ed6e11314bbd6ac3c2af59c8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Player.KartVisuals
+  ShowTopMostFoldoutHeaderGroup: 1
+  boostFovAmount: 90
+  fovTransitionDuration: 0.8
 --- !u!1 &5264826761618685072
 GameObject:
   m_ObjectHideFlags: 0

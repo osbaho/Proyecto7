@@ -46,7 +46,7 @@ namespace Assets.Scripts.Player
             {
                 healthSystem.CurrentLives.OnValueChanged -= OnLivesChanged;
             }
-            ClearBalloons();
+            ClearBalloons(); // Destroy all balloon instances
         }
 
         private void OnLivesChanged(int previousValue, int newValue)
@@ -101,9 +101,10 @@ namespace Assets.Scripts.Player
 
             for (int i = 0; i < _spawnedBalloons.Count; i++)
             {
-                if (_spawnedBalloons[i] != null)
+                GameObject balloon = _spawnedBalloons[i];
+                if (balloon != null) // Guard null check
                 {
-                    _spawnedBalloons[i].transform.SetLocalPositionAndRotation(
+                    balloon.transform.SetLocalPositionAndRotation(
                         new Vector3(startX + (i * balloonSpacing), 0, 0),
                         Quaternion.identity);
                 }
@@ -114,9 +115,15 @@ namespace Assets.Scripts.Player
         {
             foreach (var balloon in _spawnedBalloons)
             {
-                if (balloon != null) Destroy(balloon);
+                if (balloon != null)
+                {
+                    Destroy(balloon);
+                }
             }
             _spawnedBalloons.Clear();
+#if UNITY_EDITOR
+            Debug.Log($"[PlayerVisuals] Cleared {_spawnedBalloons.Count} balloons");
+#endif
         }
 
         private void AssignBalloonColor()

@@ -36,11 +36,28 @@ namespace Assets.Scripts.UI
                 leaveButton.onClick.AddListener(LeaveLobby);
             }
 
-            // Subscribe to changes
-            if (LobbyManager.Instance != null && LobbyManager.Instance.LobbyPlayers != null)
+            // Subscribe to changes with retry if LobbyManager not ready
+            StartCoroutine(SubscribeToLobbyChanges());
+        }
+
+        private System.Collections.IEnumerator SubscribeToLobbyChanges()
+        {
+            float timeout = 5f;
+            while (LobbyManager.Instance == null || LobbyManager.Instance.LobbyPlayers == null)
             {
-                LobbyManager.Instance.LobbyPlayers.OnListChanged += HandleLobbyPlayersChanged;
+                if (timeout <= 0)
+                {
+                    Debug.LogError("[LobbyUI] LobbyManager not found after timeout");
+                    yield break;
+                }
+                yield return new WaitForSeconds(0.2f);
+                timeout -= 0.2f;
             }
+
+            LobbyManager.Instance.LobbyPlayers.OnListChanged += HandleLobbyPlayersChanged;
+#if UNITY_EDITOR
+            Debug.Log("[LobbyUI] Successfully subscribed to LobbyPlayers changes");
+#endif
         }
 
         private void LeaveLobby()
@@ -120,19 +137,25 @@ namespace Assets.Scripts.UI
         }
 
         private List<GameObject> _playerListPool = new();
+        private List<TextMeshProUGUI> _playerTextPool = new(); // Cache text components
 
         private void UpdatePlayerList()
         {
             var players = LobbyManager.Instance.LobbyPlayers;
 
-            // Ensure pool is large enough
+            // Ensure pool is large enough (pre-allocate to avoid multiple instantiates)
             while (_playerListPool.Count < players.Count)
             {
                 GameObject entry = Instantiate(playerListEntryPrefab, playerListContainer);
+                TextMeshProUGUI textComp = entry.GetComponentInChildren<TextMeshProUGUI>();
                 _playerListPool.Add(entry);
+                _playerTextPool.Add(textComp);
+#if UNITY_EDITOR
+                Debug.Log($"[LobbyUI] Instantiated player list entry #{_playerListPool.Count}");
+#endif
             }
 
-            // Update active entries
+            // Update active entries (optimized: reuse cached text components)
             for (int i = 0; i < _playerListPool.Count; i++)
             {
                 if (i < players.Count)
@@ -141,7 +164,7 @@ namespace Assets.Scripts.UI
                     entry.SetActive(true);
 
                     var player = players[i];
-                    TextMeshProUGUI text = entry.GetComponentInChildren<TextMeshProUGUI>();
+                    TextMeshProUGUI text = _playerTextPool[i];
                     if (text != null)
                     {
                         string status = player.IsReady ? "<color=green>READY</color>" : "<color=red>NOT READY</color>";
@@ -162,19 +185,12 @@ namespace Assets.Scripts.UI
             // For now, we just keep it interactive if IsServer, but we could make it interactable = check
             bool canStart = CheckStartConditions();
             startButton.interactable = canStart;
-
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] UpdateStartButton - canStart: {canStart}, Player Count: {LobbyManager.Instance.LobbyPlayers.Count}");
-#endif
         }
 
         private bool CheckStartConditions()
         {
             if (LobbyManager.Instance.LobbyPlayers.Count < 2)
             {
-#if UNITY_EDITOR
-                Debug.Log($"[LobbyUI] CheckStartConditions - Not enough players: {LobbyManager.Instance.LobbyPlayers.Count}");
-#endif
                 return false;
             }
 
@@ -182,16 +198,10 @@ namespace Assets.Scripts.UI
             {
                 if (!p.IsReady)
                 {
-#if UNITY_EDITOR
-                    Debug.Log($"[LobbyUI] CheckStartConditions - Player {p.PlayerName} not ready");
-#endif
                     return false;
                 }
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] CheckStartConditions - All conditions met! Can start.");
-#endif
             return true;
         }
 
@@ -202,10 +212,6 @@ namespace Assets.Scripts.UI
 
             string code = JoinCodeManager.Instance.GetJoinCodeString();
             joinCodeDisplay.text = $"Join Code: {code}";
-
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] Displaying join code: {code}");
-#endif
         }
 
         private void OnJoinCodeChanged(Unity.Collections.FixedString32Bytes oldValue, Unity.Collections.FixedString32Bytes newValue)

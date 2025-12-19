@@ -20,6 +20,13 @@ namespace Assets.Scripts.Player
             _input = GetComponent<KartInput>();
         }
 
+        public override void OnNetworkDespawn()
+        {
+            // Cleanup references
+            _input = null;
+            _boostTimer = 0f;
+        }
+
         private float _boostTimer = 0f;
         private float _baseSpeed;
 
