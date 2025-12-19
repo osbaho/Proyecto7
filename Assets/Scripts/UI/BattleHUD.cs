@@ -21,6 +21,9 @@ namespace Assets.Scripts.UI
             // Since player might spawn later, we might need to wait or check periodically
             // Or better: Player registers itself to HUD when spawned locally
 
+#if UNITY_EDITOR
+            Debug.Log($"[BattleHUD] Start - GameObject active: {gameObject.activeInHierarchy}, Canvas: {GetComponentInParent<Canvas>()?.enabled}, ItemImage: {itemImage != null}");
+#endif
             UpdateItemUI(ItemType.None);
         }
 
@@ -36,12 +39,18 @@ namespace Assets.Scripts.UI
 
             items.OnItemChanged += UpdateItemUI;
 
+#if UNITY_EDITOR
+            Debug.Log($"[BattleHUD] RegisterPlayer complete. Subscribed to item changes. Current item: {items.CurrentItem.Value}");
+#endif
             // Initial update
             UpdateItemUI(items.CurrentItem.Value);
         }
 
         private void UpdateItemUI(ItemType item)
         {
+#if UNITY_EDITOR
+            Debug.Log($"[BattleHUD] UpdateItemUI called with item: {item}, itemImage null? {itemImage == null}");
+#endif
             if (itemImage == null) return;
 
             switch (item)
