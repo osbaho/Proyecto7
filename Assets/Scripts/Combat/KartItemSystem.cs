@@ -25,6 +25,7 @@ namespace Assets.Scripts.Combat
 
         public NetworkVariable<ItemType> CurrentItem = new(ItemType.None);
         public event System.Action<ItemType> OnItemChanged;
+        public event System.Action<float> OnBoostActivated; // New Event for Visuals
 
         // Public properties for Strategies to access
         public Player.KartController KartController => kartController;
@@ -42,8 +43,6 @@ namespace Assets.Scripts.Combat
             _healthSystem = GetComponent<HealthSystem>();
             // Try get input if not assigned
             if (input == null) input = GetComponent<KartInput>();
-            // Note: KartInput is on the root object usually, same as this script? 
-            // In walkthrough we put KartItemSystem on KartPlayer. KartInput should also be there.
         }
 
         private void InitializeStrategies()
@@ -61,8 +60,6 @@ namespace Assets.Scripts.Combat
             if (IsOwner)
             {
                 OnItemChanged?.Invoke(CurrentItem.Value);
-
-                // Auto-connect handled by PlayerHUDConnector now
             }
         }
 
@@ -94,36 +91,17 @@ namespace Assets.Scripts.Combat
         [ClientRpc]
         public void ActivateBoostClientRpc()
         {
+            // Logic Separation:
+            // 1. Gameplay Effect (Speed)
             if (kartController != null)
             {
                 kartController.ApplySpeedBoost(boostMultiplier, boostDuration);
             }
 
-            // Visual Juice (FOV Kick)
+            // 2. Visual Effect (Event)
             if (IsOwner)
             {
-                var cam = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
-                if (cam != null)
-                {
-                    // Cinemachine 3 Lens is a struct, so we must modify a copy
-                    float startFOV = cam.Lens.FieldOfView;
-                    float targetFOV = 90f; // Turbo vision!
-
-                    DG.Tweening.DOTween.Sequence()
-                        .Append(DG.Tweening.DOVirtual.Float(startFOV, targetFOV, 0.4f, v =>
-                        {
-                            var lens = cam.Lens;
-                            lens.FieldOfView = v;
-                            cam.Lens = lens;
-                        }).SetEase(DG.Tweening.Ease.OutQuad))
-                        .AppendInterval(boostDuration - 0.8f) // Hold the effect
-                        .Append(DG.Tweening.DOVirtual.Float(targetFOV, startFOV, 0.4f, v =>
-                        {
-                            var lens = cam.Lens;
-                            lens.FieldOfView = v;
-                            cam.Lens = lens;
-                        }).SetEase(DG.Tweening.Ease.InQuad));
-                }
+                OnBoostActivated?.Invoke(boostDuration);
             }
         }
 

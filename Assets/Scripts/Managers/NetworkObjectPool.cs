@@ -47,6 +47,20 @@ namespace Assets.Scripts.Managers
         {
             if (!_pooledObjects.ContainsKey(prefab))
             {
+                // Validation: ensure prefab has NetworkObject and is registered in NetworkManager
+                var netObj = prefab != null ? prefab.GetComponent<NetworkObject>() : null;
+                if (netObj == null)
+                {
+                    Debug.LogError("[NetworkObjectPool] Prefab missing NetworkObject component: " + (prefab != null ? prefab.name : "<null>"));
+                }
+                else if (NetworkManager.Singleton != null && NetworkManager.Singleton.NetworkConfig != null && NetworkManager.Singleton.NetworkConfig.Prefabs != null)
+                {
+                    if (!NetworkManager.Singleton.NetworkConfig.Prefabs.Contains(prefab))
+                    {
+                        Debug.LogError($"[NetworkObjectPool] CRITICAL CONFIG ERROR: Prefab '{prefab.name}' is NOT registered in NetworkManager's NetworkPrefabs list! Clients will NOT spawn this object.");
+                    }
+                }
+
                 _pooledObjects[prefab] = new Queue<NetworkObject>();
 
                 for (int i = 0; i < prewarmCount; i++)

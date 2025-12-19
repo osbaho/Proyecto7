@@ -162,19 +162,12 @@ namespace Assets.Scripts.UI
             // For now, we just keep it interactive if IsServer, but we could make it interactable = check
             bool canStart = CheckStartConditions();
             startButton.interactable = canStart;
-
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] UpdateStartButton - canStart: {canStart}, Player Count: {LobbyManager.Instance.LobbyPlayers.Count}");
-#endif
         }
 
         private bool CheckStartConditions()
         {
             if (LobbyManager.Instance.LobbyPlayers.Count < 2)
             {
-#if UNITY_EDITOR
-                Debug.Log($"[LobbyUI] CheckStartConditions - Not enough players: {LobbyManager.Instance.LobbyPlayers.Count}");
-#endif
                 return false;
             }
 
@@ -182,16 +175,10 @@ namespace Assets.Scripts.UI
             {
                 if (!p.IsReady)
                 {
-#if UNITY_EDITOR
-                    Debug.Log($"[LobbyUI] CheckStartConditions - Player {p.PlayerName} not ready");
-#endif
                     return false;
                 }
             }
 
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] CheckStartConditions - All conditions met! Can start.");
-#endif
             return true;
         }
 
@@ -202,10 +189,6 @@ namespace Assets.Scripts.UI
 
             string code = JoinCodeManager.Instance.GetJoinCodeString();
             joinCodeDisplay.text = $"Join Code: {code}";
-
-#if UNITY_EDITOR
-            Debug.Log($"[LobbyUI] Displaying join code: {code}");
-#endif
         }
 
         private void OnJoinCodeChanged(Unity.Collections.FixedString32Bytes oldValue, Unity.Collections.FixedString32Bytes newValue)

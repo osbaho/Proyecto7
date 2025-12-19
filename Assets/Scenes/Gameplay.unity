@@ -960,6 +960,7 @@ GameObject:
   - component: {fileID: 734156360}
   - component: {fileID: 734156359}
   - component: {fileID: 734156361}
+  - component: {fileID: 734156362}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1024,10 +1025,23 @@ MonoBehaviour:
     m_InternalValue: 0
   WinnerId:
     m_InternalValue: 18446744073709551615
+--- !u!114 &734156362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734156358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 775b0a1ceee08e4449dfd3b00d3113d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Managers.PlayerSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
   playerPrefabs:
   - {fileID: 3213268878041403186, guid: d19569020e2337342a5487ba2afa2fc5, type: 3}
   - {fileID: 3744006428973826832, guid: 4056a133f189b174a8c5c104a2b32f96, type: 3}
-  spawnDistance: 7
+  spawnDistance: 10
 --- !u!1 &956300140
 GameObject:
   m_ObjectHideFlags: 0
