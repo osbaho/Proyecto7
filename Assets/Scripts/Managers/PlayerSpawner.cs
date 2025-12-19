@@ -26,6 +26,12 @@ namespace Assets.Scripts.Managers
             new(-10, 1, 0)   // West
         };
 
+        private void ResetSpawnerState()
+        {
+            _spawnIndex = 0;
+            _usedPrefabIndices.Clear();
+        }
+
         public override void OnNetworkSpawn()
         {
             if (IsServer)
@@ -34,6 +40,7 @@ namespace Assets.Scripts.Managers
                 ValidateNetworkPrefabs();
 
                 // Do not spawn host immediately; wait until at least one client is ready to avoid missed spawns
+                ResetSpawnerState();
             }
         }
 
@@ -49,6 +56,17 @@ namespace Assets.Scripts.Managers
 
         public void SpawnPlayerForClient(ulong clientId)
         {
+            // Guard against duplicate spawns for the same client
+            foreach (var obj in FindObjectsByType<NetworkObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (obj.IsPlayerObject && obj.OwnerClientId == clientId)
+                {
+#if UNITY_EDITOR
+                    Debug.Log($"[PlayerSpawner] Client {clientId} already has a player object; skipping duplicate spawn.");
+#endif
+                    return;
+                }
+            }
             if (playerPrefabs == null || playerPrefabs.Length == 0)
             {
                 Debug.LogError("[PlayerSpawner] Player Prefabs array is empty or not assigned!");

@@ -38,10 +38,11 @@ namespace Assets.Scripts.Player.Input
             base.OnDestroy();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (!IsOwner) return;
 
+            // Sample input in FixedUpdate to match physics timestep and reduce stutter
             MoveInput = _actions.Player.Move.ReadValue<Vector2>();
             IsFiring = _actions.Player.Attack.WasPressedThisFrame();
         }

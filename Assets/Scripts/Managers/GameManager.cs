@@ -133,6 +133,13 @@ namespace Assets.Scripts.Managers
             WinnerId.Value = ulong.MaxValue;
             _activePlayers.Clear(); // Will be repopulated via events on restart
 
+            // Reset spawner state to avoid stale spawn indices/prefab usage
+            var spawner = FindFirstObjectByType<PlayerSpawner>();
+            if (spawner != null)
+            {
+                spawner.SendMessage("ResetSpawnerState", SendMessageOptions.DontRequireReceiver);
+            }
+
             // Reload scene
             NetworkManager.Singleton.SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
         }
@@ -146,6 +153,17 @@ namespace Assets.Scripts.Managers
             var spawner = FindFirstObjectByType<PlayerSpawner>();
             if (spawner != null)
             {
+                // Guard: prevent duplicate player spawn if RPC is received twice
+                foreach (var obj in FindObjectsByType<NetworkObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                {
+                    if (obj.IsPlayerObject && obj.OwnerClientId == clientId)
+                    {
+#if UNITY_EDITOR
+                        Debug.Log($"[GameManager] Client {clientId} already has a player object; skipping duplicate spawn.");
+#endif
+                        return;
+                    }
+                }
                 // Ensure host player exists for this new client, then spawn the client's player
                 spawner.SpawnHostIfNeeded();
                 spawner.SpawnPlayerForClient(clientId);

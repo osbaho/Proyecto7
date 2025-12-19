@@ -20,19 +20,19 @@ namespace Assets.Scripts.UI
 
         private System.Collections.IEnumerator ValidateJoinCodeAfterConnection()
         {
-            // Wait for JoinCodeManager to spawn and sync
-            float timeout = 5f;
+            // Wait for JoinCodeManager to spawn and sync with extended timeout
+            int retries = 20; // 20 * 0.5s = 10s timeout
             var wait = new WaitForSeconds(0.5f);
-            while (JoinCodeManager.Instance == null && timeout > 0)
+            while (JoinCodeManager.Instance == null && retries > 0)
             {
                 yield return wait;
-                timeout -= 0.5f;
+                retries--;
             }
 
             if (JoinCodeManager.Instance == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("[JoinCodeClientValidator] JoinCodeManager not found!");
+                Debug.LogError("[JoinCodeClientValidator] JoinCodeManager not found after timeout!");
 #endif
                 DisconnectClient("Failed to find server join code manager");
                 yield break;

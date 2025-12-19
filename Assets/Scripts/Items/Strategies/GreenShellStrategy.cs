@@ -8,6 +8,13 @@ namespace Assets.Scripts.Items.Strategies
     {
         public void Use(KartItemSystem user)
         {
+            // Server-only execution to prevent client-side projectile spawning
+            if (!user.IsServer)
+            {
+                Debug.LogWarning("[GreenShellStrategy] Use called on client! This should only execute on server.");
+                return;
+            }
+
             if (user.GreenShellPrefab == null || user.FirePoint == null) return;
 
             // Use NetworkObjectPool
@@ -20,11 +27,13 @@ namespace Assets.Scripts.Items.Strategies
 
                 if (netObj != null)
                 {
-                    // Ownership change if needed, though Spawning typically sets it to Server
-                    // If we want the player to own it (for latency compensation logic on client), we change it
+                    // Spawn with immediate ownership to avoid race condition
                     if (netObj.OwnerClientId != user.OwnerClientId)
                     {
                         netObj.ChangeOwnership(user.OwnerClientId);
+#if UNITY_EDITOR
+                        Debug.Log($"[GreenShellStrategy] Projectile {netObj.NetworkObjectId} spawned and ownership set to {user.OwnerClientId}");
+#endif
                     }
                 }
             }
@@ -36,6 +45,9 @@ namespace Assets.Scripts.Items.Strategies
                 if (netObj != null)
                 {
                     netObj.SpawnWithOwnership(user.OwnerClientId);
+#if UNITY_EDITOR
+                    Debug.Log($"[GreenShellStrategy] Projectile fallback spawned with ownership {user.OwnerClientId}");
+#endif
                 }
             }
         }

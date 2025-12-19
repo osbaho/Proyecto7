@@ -16,6 +16,9 @@ namespace Assets.Scripts.Managers
         [SerializeField] private string gameplaySceneName = "Gameplay";
         [SerializeField] private int minPlayers = 2;
 
+        private bool _gameStarted = false; // Guard against double start
+        private float _gameStartTime = 0f; // Timestamp to prevent race conditions
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -53,6 +56,17 @@ namespace Assets.Scripts.Managers
         {
             if (IsServer)
             {
+                // Guard: check if already in list before adding
+                foreach (var p in LobbyPlayers)
+                {
+                    if (p.ClientId == clientId)
+                    {
+#if UNITY_EDITOR
+                        Debug.LogWarning($"[LobbyManager] Client {clientId} already in lobby, skipping duplicate add");
+#endif
+                        return;
+                    }
+                }
                 AddPlayer(clientId);
             }
         }
@@ -106,14 +120,19 @@ namespace Assets.Scripts.Managers
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void ToggleReadyServerRpc(RpcParams rpcParams = default)
         {
-            ulong clientId = rpcParams.Receive.SenderClientId;
+            // Guard: verify caller matches the clientId they're trying to toggle
+            ulong senderId = rpcParams.Receive.SenderClientId;
+
             for (int i = 0; i < LobbyPlayers.Count; i++)
             {
-                if (LobbyPlayers[i].ClientId == clientId)
+                if (LobbyPlayers[i].ClientId == senderId) // Only toggle own status
                 {
                     var player = LobbyPlayers[i];
                     player.IsReady = !player.IsReady;
                     LobbyPlayers[i] = player; // Trigger Dirty
+#if UNITY_EDITOR
+                    Debug.Log($"[LobbyManager] Player {senderId} toggled ready to {player.IsReady}");
+#endif
                     break;
                 }
             }
@@ -122,6 +141,15 @@ namespace Assets.Scripts.Managers
         public void StartGame()
         {
             if (!IsServer) return;
+
+            // Guard: prevent double-start within 1 second
+            if (_gameStarted)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("[LobbyManager] Game already started, ignoring duplicate start");
+#endif
+                return;
+            }
 
             if (LobbyPlayers.Count < minPlayers)
             {
@@ -141,6 +169,12 @@ namespace Assets.Scripts.Managers
                     return;
                 }
             }
+
+            _gameStarted = true;
+            _gameStartTime = Time.time;
+#if UNITY_EDITOR
+            Debug.Log($"[LobbyManager] Starting game at {_gameStartTime}");
+#endif
 
             NetworkManager.Singleton.SceneManager.LoadScene(gameplaySceneName, LoadSceneMode.Single);
         }

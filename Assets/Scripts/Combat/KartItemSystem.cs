@@ -110,22 +110,72 @@ namespace Assets.Scripts.Combat
             return CurrentItem.Value == ItemType.None;
         }
 
-        [ServerRpc]
-        public void EquipItemServerRpc(ItemType item)
+        // Server-authoritative equip (called by ItemBox on the server)
+        public void EquipItemServer(ItemType item)
         {
+            if (!IsServer)
+            {
+                Debug.LogError("[KartItemSystem] EquipItemServer called on client!");
+                return;
+            }
+
+            // Guard: ensure slot is actually empty and item is not None
+            if (!CanPickupItem() || item == ItemType.None) 
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[KartItemSystem] Cannot equip {item}: slot not empty or item invalid");
+#endif
+                return;
+            }
+
+            CurrentItem.Value = item;
+#if UNITY_EDITOR
+            Debug.Log($"[KartItemSystem] Player {OwnerClientId} equipped {item}");
+#endif
+        }
+
+        [ServerRpc]
+        public void EquipItemServerRpc(ItemType item, ServerRpcParams rpcParams = default)
+        {
+            // Validate caller owns this object to prevent spoofing
+            if (rpcParams.Receive.SenderClientId != OwnerClientId)
+                return;
+
+            if (!CanPickupItem()) return;
+
             CurrentItem.Value = item;
         }
+
+        private ItemType _lastUsedItem = ItemType.None; // Guard against duplicate use
 
         private void UseItem()
         {
             if (CurrentItem.Value == ItemType.None) return;
 
+            // Prevent using same item twice in same frame (network race)
+            if (_lastUsedItem == CurrentItem.Value) return;
+            
+            _lastUsedItem = CurrentItem.Value;
             UseItemServerRpc(CurrentItem.Value);
         }
 
         [ServerRpc]
-        private void UseItemServerRpc(ItemType item)
+        private void UseItemServerRpc(ItemType item, ServerRpcParams rpcParams = default)
         {
+            if (rpcParams.Receive.SenderClientId != OwnerClientId)
+                return;
+
+            // Validate item hasn't changed since client sent RPC (network race prevention)
+            if (CurrentItem.Value != item)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"[KartItemSystem] Item mismatch: RPC tried to use {item} but CurrentItem is {CurrentItem.Value}");
+#endif
+                return;
+            }
+
+            if (CurrentItem.Value == ItemType.None) return; // Already consumed
+
             if (_strategies.TryGetValue(item, out var strategy))
             {
                 strategy.Use(this);
@@ -133,6 +183,7 @@ namespace Assets.Scripts.Combat
 
             // Consume item
             CurrentItem.Value = ItemType.None;
+            _lastUsedItem = ItemType.None; // Reset guard
         }
     }
 }

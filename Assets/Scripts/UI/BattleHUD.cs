@@ -26,6 +26,14 @@ namespace Assets.Scripts.UI
 
         public void RegisterPlayer(HealthSystem health, KartItemSystem items)
         {
+            if (items == null)
+            {
+#if UNITY_EDITOR
+                Debug.LogError("[BattleHUD] RegisterPlayer called with null KartItemSystem. HUD cannot subscribe.");
+#endif
+                return;
+            }
+
             items.OnItemChanged += UpdateItemUI;
 
             // Initial update

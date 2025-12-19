@@ -44,12 +44,27 @@ namespace Assets.Scripts.Items
             if (boxCollider != null) boxCollider.enabled = active;
         }
 
+        private bool _inCollisionCheck = false; // Guard against simultaneous triggers
+        private ulong _lastPickupClient = ulong.MaxValue; // Track last pickup to prevent duplicates
+
         private void OnTriggerEnter(Collider other)
         {
-            if (!IsServer || !_isActive.Value) return;
+            if (!IsServer || !_isActive.Value || _inCollisionCheck) return; // Server authoritative pickup + guard duplicate triggers
+
+            _inCollisionCheck = true;
 
             if (other.TryGetComponent<KartItemSystem>(out var itemSystem))
             {
+                // Prevent same player from picking up twice in same frame
+                if (itemSystem.OwnerClientId == _lastPickupClient)
+                {
+#if UNITY_EDITOR
+                    Debug.LogWarning($"[ItemBox] Duplicate pickup attempt by {itemSystem.OwnerClientId}");
+#endif
+                    _inCollisionCheck = false;
+                    return;
+                }
+
                 if (itemSystem.CanPickupItem())
                 {
                     // Select weighted random item
@@ -57,14 +72,21 @@ namespace Assets.Scripts.Items
 
                     if (randomItem != ItemType.None)
                     {
-                        itemSystem.EquipItemServerRpc(randomItem);
+                        // Server gives the item directly to avoid double-trigger RPCs
+                        itemSystem.EquipItemServer(randomItem);
+                        _lastPickupClient = itemSystem.OwnerClientId;
 
                         // Disable box and start respawn timer
                         _isActive.Value = false;
                         _respawnTimer = 0f;
+#if UNITY_EDITOR
+                        Debug.Log($"[ItemBox] Pickup granted: {randomItem} to {itemSystem.OwnerClientId}");
+#endif
                     }
                 }
             }
+
+            _inCollisionCheck = false;
         }
 
         private ItemType SelectWeightedItem()
@@ -120,6 +142,10 @@ namespace Assets.Scripts.Items
             {
                 _isActive.Value = true;
                 _respawnTimer = 0f;
+                _lastPickupClient = ulong.MaxValue; // Reset on respawn
+#if UNITY_EDITOR
+                Debug.Log("[ItemBox] Respawned and reset pickup tracking");
+#endif
             }
         }
     }
