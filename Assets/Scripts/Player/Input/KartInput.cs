@@ -45,12 +45,6 @@ namespace Assets.Scripts.Player.Input
             // Sample input in FixedUpdate to match physics timestep and reduce stutter
             MoveInput = _actions.Player.Move.ReadValue<Vector2>();
             IsFiring = _actions.Player.Attack.IsPressed();
-#if UNITY_EDITOR
-            if (MoveInput != Vector2.zero)
-            {
-                Debug.Log($"[KartInput] FixedUpdate - MoveInput: {MoveInput}, IsFiring: {IsFiring}");
-            }
-#endif
         }
     }
 }

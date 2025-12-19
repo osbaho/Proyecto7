@@ -48,31 +48,10 @@ namespace Assets.Scripts.Player
                 }
             }
 
-            if (!IsOwner)
-            {
-#if UNITY_EDITOR
-                if (Time.frameCount % 300 == 0) Debug.Log($"[KartController] Not owner: IsOwner={IsOwner}, IsClient={IsClient}, IsServer={IsServer}");
-#endif
-                return;
-            }
+            if (!IsOwner || _input == null) return;
 
-            if (_input == null)
-            {
-#if UNITY_EDITOR
-                if (Time.frameCount % 300 == 0) Debug.LogWarning($"[KartController] Input is null for owner {OwnerClientId}");
-#endif
-                return;
-            }
-
-            Vector2 moveInput = _input.MoveInput;
-#if UNITY_EDITOR
-            if (moveInput != Vector2.zero && Time.frameCount % 60 == 0)
-            {
-                Debug.Log($"[KartController] Moving with input: {moveInput}");
-            }
-#endif
-            Move(moveInput);
-            Turn(moveInput);
+            Move(_input.MoveInput);
+            Turn(_input.MoveInput);
         }
 
         private void Move(Vector2 input)

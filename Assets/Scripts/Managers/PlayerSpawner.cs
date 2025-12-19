@@ -103,10 +103,23 @@ namespace Assets.Scripts.Managers
             Debug.Log($"[PlayerSpawner] Calling SpawnAsPlayerObject for client {clientId}, NetworkObjectId will be assigned...");
 #endif
 
-            netObj.SpawnAsPlayerObject(clientId, true);
+            // CRITICAL: Set owner BEFORE spawning, then spawn as player object
+            if (!IsServer)
+            {
+                Debug.LogError("[PlayerSpawner] SpawnPlayerForClient called on client! Must be server.");
+                Destroy(playerInstance.gameObject);
+                return;
+            }
+
+            // Spawn network object with ownership set to clientId
+            netObj.SpawnWithOwnership(clientId);
 
 #if UNITY_EDITOR
-            Debug.Log($"[PlayerSpawner] Player {clientId} spawned successfully. NetworkObjectId: {netObj.NetworkObjectId}, IsSpawned: {netObj.IsSpawned}");
+            Debug.Log($"[PlayerSpawner] Player {clientId} spawned. NetworkObjectId: {netObj.NetworkObjectId}, IsSpawned: {netObj.IsSpawned}, OwnerClientId: {netObj.OwnerClientId}, IsPlayerObject: {netObj.IsPlayerObject}");
+            if (netObj.OwnerClientId != clientId)
+            {
+                Debug.LogError($"[PlayerSpawner] CRITICAL: Ownership mismatch! Expected {clientId}, got {netObj.OwnerClientId}");
+            }
 #endif
         }
 
